@@ -1,53 +1,137 @@
-import React, { useState } from 'react';
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../auth/AuthProvider'
+import SiteHeader from './SiteHeader'
+import SiteFooter from './SiteFooter'
 
-const Login = ({ onLoginSuccess }) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+export default function Login({ onLoginSuccess, modo = 'login' }) {
+  const { login, registro } = useAuth()
+  const [nombre, setNombre]   = useState('')
+  const [email, setEmail]     = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError]     = useState('')
+  const [cargando, setCargando] = useState(false)
 
-    const manejarLogin = async (e) => {
-        e.preventDefault();
+  const esRegistro = modo === 'registro'
 
-        try {
-            const res = await fetch('http://localhost:5000/api/users/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await res.json();
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setCargando(true)
+    try {
+      if (esRegistro) {
+        if (!nombre.trim()) { setError('El nombre es obligatorio'); setCargando(false); return }
+        await registro(nombre, email, password)
+      } else {
+        await login(email, password)
+      }
+      onLoginSuccess()
+    } catch (err) {
+      setError(
+        err.response?.data?.mensaje ||
+        err.response?.data?.message ||
+        (esRegistro ? 'Error al registrarse' : 'Email o contraseña incorrectos')
+      )
+    } finally {
+      setCargando(false)
+    }
+  }
 
-            if (res.ok) {
-                onLoginSuccess(data); // Guardamos el objeto usuario (con isAdmin)
-                localStorage.setItem('userVinoteca', JSON.stringify(data)); // Para no perder la sesión al recargar
-            } else {
-                alert(data.message || 'Error al iniciar sesión');
-            }
-        } catch (error) {
-            alert('No se pudo conectar con el servidor');
-        }
-    };
+  return (
+    <>
+      <SiteHeader />
+      <main className="flex min-h-[80vh] items-center justify-center px-4 py-20 bg-cream">
+        <div className="w-full max-w-md">
 
-    return (
-        <div className="login-container">
-            <form onSubmit={manejarLogin} className="login-form">
-                <h2>🍷 Vinoteca Login</h2>
+          {/* Título */}
+          <div className="mb-8 text-center">
+            <p className="eyebrow text-vine">{esRegistro ? 'Nueva cuenta' : 'Bienvenido'}</p>
+            <h1 className="mt-3 font-serif text-4xl font-semibold text-ink">
+              {esRegistro ? 'Crear cuenta' : 'Iniciar sesión'}
+            </h1>
+            <p className="mt-2 text-sm text-ink/60">
+              {esRegistro
+                ? 'Completá tus datos para empezar a comprar'
+                : 'Ingresá para ver tu historial y realizar compras'}
+            </p>
+          </div>
+
+          {/* Formulario */}
+          <form onSubmit={handleSubmit} className="space-y-5 border border-ink/10 bg-white p-8">
+
+            {esRegistro && (
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-ink">Nombre</label>
                 <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="login-input"
+                  type="text"
+                  required
+                  value={nombre}
+                  onChange={e => setNombre(e.target.value)}
+                  className="form-input"
+                  placeholder="Tu nombre"
                 />
-                <input
-                    type="password"
-                    placeholder="Contraseña"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="login-input"
-                />
-                <button type="submit" className="login-button">Entrar</button>
-            </form>
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-ink">Email</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="form-input"
+                placeholder="tu@email.com"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-ink">Contraseña</label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="form-input"
+                placeholder="••••••••"
+              />
+            </div>
+
+            {error && (
+              <p className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={cargando}
+              className="btn-primary w-full justify-center"
+            >
+              {cargando ? 'Cargando...' : esRegistro ? 'Crear cuenta →' : 'Ingresar →'}
+            </button>
+          </form>
+
+          {/* Switch login / registro */}
+          <p className="mt-6 text-center text-sm text-ink/60">
+            {esRegistro ? (
+              <>¿Ya tenés cuenta?{' '}
+                <Link to="/login" className="font-medium text-wine hover:text-vine">
+                  Iniciá sesión
+                </Link>
+              </>
+            ) : (
+              <>¿No tenés cuenta?{' '}
+                <Link to="/registro" className="font-medium text-wine hover:text-vine">
+                  Registrate
+                </Link>
+              </>
+            )}
+          </p>
+
         </div>
-    );
-};
-
-export default Login;
+      </main>
+      <SiteFooter />
+    </>
+  )
+}

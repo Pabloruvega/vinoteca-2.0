@@ -1,13 +1,27 @@
 import express from 'express';
-import { registrarUsuario, getUsuarios, deleteUsuario, updateUsuario, authUser } from '../controllers/userController.js';
+import {
+    registrarUsuario,
+    crearUsuarioAdmin,
+    getUsuarios,
+    deleteUsuario,
+    updateUsuario,
+    authUser
+} from '../controllers/userController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/registro', protect, admin, registrarUsuario);
+// Rutas públicas
+router.post('/login', authUser);
+
+// Fix #3: Registro ahora es público, cualquiera puede crear una cuenta.
+// isAdmin siempre queda en false en este endpoint.
+router.post('/registro', registrarUsuario);
+
+// Rutas solo para admins
+router.post('/admin/crear', protect, admin, crearUsuarioAdmin);  // Admin crea usuario con rol
 router.get('/', protect, admin, getUsuarios);
 router.delete('/:id', protect, admin, deleteUsuario);
 router.put('/:id', protect, admin, updateUsuario);
-router.post('/login', authUser); // Login no necesita middleware porque es para generar el token
 
 export default router;

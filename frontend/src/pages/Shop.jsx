@@ -1,22 +1,46 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import SiteHeader from '../components/SiteHeader'
+import SiteFooter from '../components/SiteFooter'
+import WineGrid from '../components/WineGrid'
 import api from '../api'
-import VinoCard from '../components/VinoCard'
-
 
 export default function Shop() {
-const [vinos, setVinos] = useState([])
-const [loading, setLoading] = useState(true)
+  const [vinos, setVinos]   = useState([])
+  const [loading, setLoading] = useState(true)
 
+  useEffect(() => {
+    api.get('/vinos')
+      .then(r => setVinos(r.data))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
-useEffect(() => { (async () => { try { const res = await api.get('/vinos'); setVinos(res.data); } catch (err) { console.error(err) } finally { setLoading(false) } })() }, [])
+  return (
+    <>
+      <SiteHeader />
+      <main>
 
+        {/* Header de sección */}
+        <section className="border-b border-ink/10 bg-wine text-white">
+          <div className="mx-auto max-w-6xl px-6 py-20">
+            <p className="eyebrow text-white/70">La colección</p>
+            <h1 className="mt-5 max-w-2xl font-serif text-5xl font-semibold leading-tight text-balance md:text-6xl">
+              Nuestros vinos
+            </h1>
+            <p className="mt-6 max-w-xl leading-relaxed text-white/80">
+              Cada etiqueta cuenta una historia de la tierra sanjuanina. Elegí
+              tu preferido o descubrí algo nuevo.
+            </p>
+          </div>
+        </section>
 
-return (
-<div className="p-6">
-  <h1 className="text-3xl mb-6 text-white text-center">Catálogo de Vinos</h1>
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-    {loading ? <div className="text-white">Cargando...</div> : vinos.map(v => <VinoCard key={v._id} vino={v} />)}
-  </div>
-</div>
-)
+        {/* Grilla con filtros */}
+        <section className="mx-auto max-w-6xl px-6 py-16">
+          <WineGrid vinos={vinos} loading={loading} />
+        </section>
+
+      </main>
+      <SiteFooter />
+    </>
+  )
 }

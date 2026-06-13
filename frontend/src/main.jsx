@@ -9,13 +9,13 @@ import './styles.css'
 
 
 createRoot(document.getElementById('root')).render(
-<React.StrictMode>
-<BrowserRouter>
-<AuthProvider>
-<CartProvider>
-<App />
-</CartProvider>
-</AuthProvider>
-</BrowserRouter>
-</React.StrictMode>
+  <React.StrictMode>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AuthProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>
 )

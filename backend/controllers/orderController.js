@@ -1,16 +1,15 @@
 import Order from '../models/Order.js';
 import Vino from '../models/Vino.js';
 
-// Registrar Venta
 export const crearVenta = async (req, res) => {
     try {
         const { items, total } = req.body;
 
         if (!items || items.length === 0) {
-            return res.status(400).json({ mensaje: "No hay artículos en la venta" });
+            return res.status(400).json({ mensaje: 'No hay artículos en la venta' });
         }
 
-        // 1. Verificar stock y prepararse para descontarlo
+        // 1. Verificar stock
         for (const item of items) {
             const vino = await Vino.findById(item.vino);
             if (!vino) {
@@ -23,7 +22,7 @@ export const crearVenta = async (req, res) => {
 
         // 2. Crear la orden
         const nuevaVenta = new Order({
-            user: req.user._id, // Viene del middleware de autenticación
+            user: req.user._id,
             items,
             total
         });
@@ -38,22 +37,23 @@ export const crearVenta = async (req, res) => {
 
         res.status(201).json(ventaGuardada);
     } catch (error) {
-        console.error("Error al crear la venta:", error);
-        res.status(500).json({ mensaje: "Error del servidor al registrar la venta" });
+        console.error('Error al crear la venta:', error);
+        res.status(500).json({ mensaje: 'Error del servidor al registrar la venta' });
     }
 };
 
-// Obtener todas las ventas (Historial)
+// Fix #11: Los usuarios normales solo ven sus propias compras.
+// Solo los admins ven el historial completo.
 export const obtenerVentas = async (req, res) => {
     try {
-        // Obtenemos las ventas ordenadas por las más recientes primero
-        // y traemos (populate) el nombre del usuario que hizo la venta
-        const ventas = await Order.find()
+        const filtro = req.user.isAdmin ? {} : { user: req.user._id };
+
+        const ventas = await Order.find(filtro)
             .populate('user', 'username email')
             .sort({ createdAt: -1 });
-            
+
         res.json(ventas);
     } catch (error) {
-        res.status(500).json({ mensaje: "Error al obtener el historial de ventas" });
+        res.status(500).json({ mensaje: 'Error al obtener el historial de ventas' });
     }
 };

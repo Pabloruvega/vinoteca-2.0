@@ -1,81 +1,80 @@
 import { useState, useEffect } from 'react';
+import api from '../api';
 
-const HistorialVentas = () => {
-    const [ventas, setVentas] = useState([]);
-    const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState('');
+function formatPrecio(precio) {
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency', currency: 'ARS', maximumFractionDigits: 0,
+  }).format(precio);
+}
 
-    useEffect(() => {
-        obtenerHistorial();
-    }, []);
+function formatFecha(fecha) {
+  return new Date(fecha).toLocaleDateString('es-AR', {
+    day: 'numeric', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
 
-    const obtenerHistorial = async () => {
-        try {
-            const token = JSON.parse(localStorage.getItem('userVinoteca'))?.token;
-            const res = await fetch('http://localhost:5000/api/ventas', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+export default function HistorialVentas() {
+  const [ventas,   setVentas]   = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState('');
 
-            if (res.ok) {
-                const data = await res.json();
-                setVentas(data);
-            } else {
-                setError('Error al obtener el historial de ventas.');
-            }
-        } catch (err) {
-            setError('Error de conexión.');
-        } finally {
-            setCargando(false);
-        }
-    };
+  useEffect(() => {
+    api.get('/ventas')
+      .then(r => setVentas(r.data))
+      .catch(() => setError('Error al obtener el historial.'))
+      .finally(() => setLoading(false));
+  }, []);
 
-    if (cargando) return <p>Cargando historial...</p>;
-    if (error) return <p className="error-msg">{error}</p>;
+  if (loading) return (
+    <div className="flex justify-center py-20">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-wine border-t-transparent" />
+    </div>
+  );
 
-    return (
-        <div className="hv-container">
-            <h2 className="hv-title">📋 Historial de Ventas</h2>
-            {ventas.length === 0 ? (
-                <p>No hay ventas registradas.</p>
-            ) : (
-                <div className="hv-list">
-                    {ventas.map((venta) => (
-                        <div key={venta._id} className="hv-card">
-                            <div className="hv-header-row">
-                                <strong>Vendedor:</strong> {venta.user?.username || 'Desconocido'}
-                                <span className="hv-date">
-                                    {new Date(venta.createdAt).toLocaleString()}
-                                </span>
-                            </div>
-                            <table className="hv-table">
-                                <thead>
-                                    <tr>
-                                        <th className="hv-th">Vino</th>
-                                        <th className="hv-th">Cant.</th>
-                                        <th className="hv-th">Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {venta.items.map((item, idx) => (
-                                        <tr key={idx}>
-                                            <td className="hv-td">{item.nombre}</td>
-                                            <td className="hv-td">{item.cantidad}</td>
-                                            <td className="hv-td">${item.precioUnitario * item.cantidad}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            <div className="hv-total-row">
-                                <strong>Total Venta: ${venta.total}</strong>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+  if (error) return <p className="text-red-600 text-sm">{error}</p>;
+
+  if (ventas.length === 0) return (
+    <p className="text-ink/50 text-center py-20">No hay ventas registradas.</p>
+  );
+
+  return (
+    <div className="space-y-4">
+      {ventas.map(venta => (
+        <div key={venta._id} className="border border-ink/10 bg-white overflow-hidden">
+          {/* Header de la venta */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-ink/10 bg-cream">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-ink/40">
+                {formatFecha(venta.createdAt)}
+              </p>
+              <p className="mt-0.5 text-sm font-medium text-ink">
+                {venta.user?.username || 'Usuario eliminado'}
+                <span className="ml-2 text-xs text-ink/40">{venta.user?.email}</span>
+              </p>
+            </div>
+            <p className="font-serif text-xl font-semibold text-wine">
+              {formatPrecio(venta.total)}
+            </p>
+          </div>
+
+          {/* Items */}
+          <table className="w-full text-sm">
+            <tbody className="divide-y divide-ink/5">
+              {venta.items.map((item, idx) => (
+                <tr key={idx}>
+                  <td className="px-5 py-3 font-medium text-ink">{item.nombre}</td>
+                  <td className="px-5 py-3 text-ink/60">{item.cantidad} u.</td>
+                  <td className="px-5 py-3 text-ink/60">{formatPrecio(item.precioUnitario)} c/u</td>
+                  <td className="px-5 py-3 text-right font-medium text-ink">
+                    {formatPrecio(item.precioUnitario * item.cantidad)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-    );
-};
-
-export default HistorialVentas;
+      ))}
+    </div>
+  );
+}
