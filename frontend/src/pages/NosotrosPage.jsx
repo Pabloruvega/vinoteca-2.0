@@ -33,7 +33,7 @@ export default function NosotrosPage() {
         {/* Intro */}
         <section className="mx-auto max-w-3xl px-6 py-20 text-center">
           <p className="text-xl leading-relaxed text-ink">
-            En Bodega del Sol creemos que un gran vino no se hace en la bodega,
+            En Bodega G1 creemos que un gran vino no se hace en la bodega,
             sino en el viñedo. Por eso cuidamos cada cepa como lo hicieron
             nuestros abuelos: con paciencia, respeto y una profunda conexión con
             la tierra.

@@ -41,14 +41,14 @@ export default function SiteFooter() {
             <li>Ruta 40, Pocito</li>
             <li>San Juan, Argentina</li>
             <li>+54 264 000 0000</li>
-            <li>hola@bodegadelsol.com.ar</li>
+            <li>hola@bodegag1.com.ar</li>
           </ul>
         </div>
       </div>
 
       <div className="border-t border-white/15">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-6 text-xs text-white/50 sm:flex-row">
-          <p>© {new Date().getFullYear()} Bodega del Sol. Todos los derechos reservados.</p>
+          <p>© {new Date().getFullYear()} Bodega G1. Todos los derechos reservados.</p>
           <p>Beber con moderación. Prohibida su venta a menores de 18 años.</p>
         </div>
       </div>
