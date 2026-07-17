@@ -9,6 +9,9 @@ import Carrito      from './pages/Carrito'
 import MisCompras   from './pages/MisCompras'
 import AdminPanel   from './pages/AdminPanel'
 import Login        from './components/Login'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword  from './pages/ResetPassword'
+import MiCuenta        from './pages/MiCuenta'
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
@@ -37,12 +40,24 @@ export default function App() {
       <Route path="/login"    element={<Login onLoginSuccess={() => window.location.href = '/'} />} />
       <Route path="/registro" element={<Login modo="registro" onLoginSuccess={() => window.location.href = '/'} />} />
 
-      {/* Protegida */}
+      {/* Recuperación de contraseña */}
+      <Route path="/olvide-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+      {/* Protegidas */}
       <Route
         path="/mis-compras"
         element={
           <ProtectedRoute>
             <MisCompras />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mi-cuenta"
+        element={
+          <ProtectedRoute>
+            <MiCuenta />
           </ProtectedRoute>
         }
       />

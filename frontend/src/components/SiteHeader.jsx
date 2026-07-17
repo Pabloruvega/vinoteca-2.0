@@ -82,6 +82,12 @@ export default function SiteHeader() {
               >
                 {user.username}
               </Link>
+              <Link
+                to="/mi-cuenta"
+                className="text-xs font-medium uppercase tracking-wide text-ink/40 transition-colors hover:text-wine"
+              >
+                Mi cuenta
+              </Link>
               <button
                 onClick={logout}
                 className="text-xs font-medium uppercase tracking-wide text-ink/40 transition-colors hover:text-red-600"
@@ -155,6 +161,13 @@ export default function SiteHeader() {
                   className="py-2 text-sm font-medium text-ink/70 hover:text-wine"
                 >
                   Mis compras ({user.username})
+                </Link>
+                <Link
+                  to="/mi-cuenta"
+                  onClick={() => setOpen(false)}
+                  className="py-2 text-sm font-medium text-ink/70 hover:text-wine"
+                >
+                  Mi cuenta
                 </Link>
                 {user.isAdmin && (
                   <Link

@@ -12,9 +12,9 @@ export default function SiteFooter() {
     <footer className="border-t border-ink/10 bg-wine text-white">
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-3">
         <div>
-          <p className="font-serif text-2xl font-semibold">Bodega del Sol</p>
+          <p className="font-serif text-2xl font-semibold">Bodega G1</p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/70">
-            Vinos de altura nacidos al pie de los Andes, en el corazón del valle
+            Vinos de altura nacidos al pie de los Andes, en el corazón del Valle
             del Tulum, San Juan, Argentina.
           </p>
         </div>
@@ -38,10 +38,10 @@ export default function SiteFooter() {
         <div>
           <p className="eyebrow text-white/60 text-xs">Visitanos</p>
           <ul className="mt-4 space-y-2 text-sm text-white/80">
-            <li>Ruta 40, Pocito</li>
+            <li>Ruta 40 y Calle 11, Pocito</li>
             <li>San Juan, Argentina</li>
-            <li>+54 264 000 0000</li>
-            <li>hola@bodegag1.com.ar</li>
+            <li>+54 264 5123456</li>
+            <li>gestion@bodegag1.com.ar</li>
           </ul>
         </div>
       </div>

@@ -34,8 +34,13 @@ export const AuthProvider = ({ children }) => {
         setUser(null)
     }
 
+    const cambiarPassword = async (passwordActual, passwordNueva) => {
+        const res = await api.put('/users/perfil/password', { passwordActual, passwordNueva })
+        return res.data
+    }
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, registro, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, registro, logout, cambiarPassword }}>
             {children}
         </AuthContext.Provider>
     )

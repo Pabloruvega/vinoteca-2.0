@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import api from '../api';
 import FormularioVino from '../components/FormularioVino';
@@ -55,6 +55,12 @@ function Sidebar({ seccion, setSeccion, onLogout, onVerTienda }) {
         >
           <span>🛍️</span> Ver tienda
         </button>
+        <Link
+          to="/mi-cuenta"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/60 hover:bg-white/10 hover:text-white transition-colors text-left"
+        >
+          <span>⚙️</span> Mi cuenta
+        </Link>
         <button
           onClick={onLogout}
           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/40 hover:text-red-300 transition-colors text-left"

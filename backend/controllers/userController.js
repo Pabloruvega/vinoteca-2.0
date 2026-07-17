@@ -1,6 +1,8 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { enviarEmail } from '../utils/sendEmail.js';
 
 // Fix #1: Sin fallback hardcodeado. Si JWT_SECRET no existe, generateToken lanza error
 // en lugar de usar un secreto conocido públicamente.
@@ -145,6 +147,107 @@ export const updateUsuario = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error al actualizar', error: error.message });
+    }
+};
+
+// Cambio de contraseña por el propio usuario logueado (requiere la actual)
+export const cambiarPassword = async (req, res) => {
+    try {
+        const { passwordActual, passwordNueva } = req.body;
+
+        if (!passwordActual || !passwordNueva) {
+            return res.status(400).json({ mensaje: 'Faltan datos' });
+        }
+        if (passwordNueva.length < 6) {
+            return res.status(400).json({ mensaje: 'La nueva contraseña debe tener al menos 6 caracteres' });
+        }
+
+        const usuario = await User.findById(req.user._id);
+        if (!usuario) {
+            return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+        }
+
+        const coincide = await bcrypt.compare(passwordActual, usuario.password);
+        if (!coincide) {
+            return res.status(401).json({ mensaje: 'La contraseña actual es incorrecta' });
+        }
+
+        usuario.password = passwordNueva;
+        await usuario.save();
+
+        res.json({ mensaje: 'Contraseña actualizada con éxito' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al cambiar la contraseña', error: error.message });
+    }
+};
+
+// Solicitud de recuperación de contraseña por email
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ mensaje: 'El email es obligatorio' });
+        }
+
+        // Mensaje de respuesta siempre igual, exista o no el email,
+        // para no revelar qué emails están registrados.
+        const mensajeGenerico = { mensaje: 'Si el email existe, vas a recibir un link para restablecer tu contraseña.' };
+
+        const usuario = await User.findOne({ email });
+        if (!usuario) {
+            return res.json(mensajeGenerico);
+        }
+
+        const tokenCrudo = crypto.randomBytes(32).toString('hex');
+        usuario.resetPasswordToken = crypto.createHash('sha256').update(tokenCrudo).digest('hex');
+        usuario.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hora
+        await usuario.save();
+
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const resetUrl = `${frontendUrl}/reset-password/${tokenCrudo}`;
+
+        await enviarEmail({
+            to: usuario.email,
+            subject: 'Recuperar contraseña — Bodega G1',
+            text: `Recibimos una solicitud para restablecer tu contraseña. Entrá a este link (válido por 1 hora): ${resetUrl}\n\nSi no fuiste vos, ignorá este email.`,
+            html: `<p>Recibimos una solicitud para restablecer tu contraseña.</p><p><a href="${resetUrl}">Restablecer contraseña</a> (válido por 1 hora)</p><p>Si no fuiste vos, ignorá este email.</p>`,
+        });
+
+        res.json(mensajeGenerico);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al procesar la solicitud', error: error.message });
+    }
+};
+
+// Restablecimiento de contraseña con el token recibido por email
+export const resetPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        if (!password || password.length < 6) {
+            return res.status(400).json({ mensaje: 'La contraseña debe tener al menos 6 caracteres' });
+        }
+
+        const tokenHasheado = crypto.createHash('sha256').update(token).digest('hex');
+
+        const usuario = await User.findOne({
+            resetPasswordToken: tokenHasheado,
+            resetPasswordExpires: { $gt: Date.now() },
+        });
+
+        if (!usuario) {
+            return res.status(400).json({ mensaje: 'El link es inválido o expiró' });
+        }
+
+        usuario.password = password;
+        usuario.resetPasswordToken = undefined;
+        usuario.resetPasswordExpires = undefined;
+        await usuario.save();
+
+        res.json({ mensaje: 'Contraseña restablecida con éxito' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al restablecer la contraseña', error: error.message });
     }
 };
 

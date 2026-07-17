@@ -86,7 +86,14 @@ export default function Login({ onLoginSuccess, modo = 'login' }) {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-ink">Contraseña</label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="text-sm font-medium text-ink">Contraseña</label>
+                {!esRegistro && (
+                  <Link to="/olvide-password" className="text-xs font-medium text-wine hover:text-vine">
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                )}
+              </div>
               <input
                 type="password"
                 required

@@ -3,9 +3,9 @@ import SiteHeader from '../components/SiteHeader'
 import SiteFooter from '../components/SiteFooter'
 
 const datos = [
-  { titulo: 'Dirección', lineas: ['Ruta 40, Pocito', 'San Juan, Argentina'] },
-  { titulo: 'Teléfono',  lineas: ['+54 264 000 0000'] },
-  { titulo: 'Email',     lineas: ['hola@bodegadelsol.com.ar'] },
+  { titulo: 'Dirección', lineas: ['Ruta 40 y Calle 11, Pocito', 'San Juan, Argentina'] },
+  { titulo: 'Teléfono',  lineas: ['+54 264 5123456'] },
+  { titulo: 'Email',     lineas: ['gestion@bodegag1.com.ar'] },
   { titulo: 'Horarios',  lineas: ['Lun a Sáb: 10 a 18 h', 'Domingos: con reserva'] },
 ]
 
