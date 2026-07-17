@@ -1,0 +1,14 @@
+{
+  "name": "vinoteca",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Instalación y arranque del proyecto completo (backend + frontend)",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend && npm install --prefix mobile",
+    "postinstall": "npm run install:all",
+    "seed": "npm run seed --prefix backend",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:mobile": "npm run start --prefix mobile"
+  }
+}
