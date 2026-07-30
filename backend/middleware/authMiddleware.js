@@ -36,9 +36,16 @@ export const protect = async (req, res, next) => {
 };
 
 export const admin = (req, res, next) => {
-    if (req.user && req.user.isAdmin) {
+    if (req.user && req.user.role === 'admin') {
         next();
     } else {
         res.status(403).json({ message: 'No autorizado como administrador' });
+    }
+};
+export const staff = (req, res, next) => {
+    if (req.user && (req.user.role === 'empleado' || req.user.role === 'admin')) {
+        next();
+    } else {
+        res.status(403).json({ message: 'No autorizado: se requiere rol de empleado o administrador' });
     }
 };

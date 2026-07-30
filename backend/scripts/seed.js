@@ -40,11 +40,11 @@ const run = async () => {
       continue;
     }
 
-    await User.create({
+   await User.create({
       username: admin.username,
       email: admin.email,
       password: admin.password,
-      isAdmin: true,
+      role: 'admin',
     });
     console.log(`Admin creado: ${admin.email} / ${admin.password} — cambiar contraseña desde "Mi cuenta".`);
   }

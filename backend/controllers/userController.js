@@ -27,13 +27,14 @@ export const registrarUsuario = async (req, res) => {
         const existe = await User.findOne({ email });
         if (existe) return res.status(400).json({ mensaje: 'El email ya existe' });
 
-        // Solo se puede registrar como admin si la solicitud viene de un admin autenticado.
-        // Para registro público, isAdmin siempre es false.
+        // Fix #3 + roles: el registro público SIEMPRE crea un cliente, sin importar
+        // qué venga en el body. Los roles empleado/admin solo los asigna un admin
+        // ya autenticado desde el panel (ver crearUsuarioAdmin más abajo).
         const nuevoUsuario = new User({
             username: nombre,
             email,
             password,
-            isAdmin: false // El rol admin solo lo asigna otro admin desde el panel
+            role: 'cliente',
         });
 
         await nuevoUsuario.save();
@@ -42,7 +43,7 @@ export const registrarUsuario = async (req, res) => {
             _id: nuevoUsuario._id,
             username: nuevoUsuario.username,
             email: nuevoUsuario.email,
-            isAdmin: nuevoUsuario.isAdmin,
+            role: nuevoUsuario.role,
             token: generateToken(nuevoUsuario._id),
         });
     } catch (error) {
@@ -60,14 +61,19 @@ export const crearUsuarioAdmin = async (req, res) => {
             return res.status(400).json({ mensaje: 'Nombre, email y contraseña son obligatorios' });
         }
 
-        const existe = await User.findOne({ email });
+       const existe = await User.findOne({ email });
         if (existe) return res.status(400).json({ mensaje: 'El email ya existe' });
+
+        const rolesValidos = ['cliente', 'empleado', 'admin'];
+        if (rol !== undefined && !rolesValidos.includes(rol)) {
+            return res.status(400).json({ mensaje: 'Rol inválido' });
+        }
 
         const nuevoUsuario = new User({
             username: nombre,
             email,
             password,
-            isAdmin: rol === 'admin'
+            role: rolesValidos.includes(rol) ? rol : 'empleado',
         });
 
         await nuevoUsuario.save();
@@ -76,7 +82,7 @@ export const crearUsuarioAdmin = async (req, res) => {
             _id: nuevoUsuario._id,
             username: nuevoUsuario.username,
             email: nuevoUsuario.email,
-            isAdmin: nuevoUsuario.isAdmin,
+            role: nuevoUsuario.role,
         });
     } catch (error) {
         console.error(error);
@@ -126,7 +132,13 @@ export const updateUsuario = async (req, res) => {
 
         if (nombre) usuario.username = nombre;
         if (email) usuario.email = email;
-        if (rol !== undefined) usuario.isAdmin = rol === 'admin';
+        if (rol !== undefined) {
+            const rolesValidos = ['cliente', 'empleado', 'admin'];
+            if (!rolesValidos.includes(rol)) {
+                return res.status(400).json({ mensaje: 'Rol inválido' });
+            }
+            usuario.role = rol;
+        }
 
         // Si se envió nueva contraseña, asignarla en texto plano:
         // el hook pre('save') del modelo la va a hashear automáticamente
@@ -142,7 +154,7 @@ export const updateUsuario = async (req, res) => {
                 _id: usuarioActualizado._id,
                 username: usuarioActualizado.username,
                 email: usuarioActualizado.email,
-                isAdmin: usuarioActualizado.isAdmin,
+                role: usuarioActualizado.role,
             }
         });
     } catch (error) {
@@ -257,11 +269,11 @@ export const authUser = async (req, res) => {
         const user = await User.findOne({ email });
 
         if (user && (await bcrypt.compare(password, user.password))) {
-            res.json({
+         res.json({
                 _id: user._id,
                 username: user.username,
                 email: user.email,
-                isAdmin: user.isAdmin,
+                role: user.role,
                 token: generateToken(user._id),
             });
         } else {

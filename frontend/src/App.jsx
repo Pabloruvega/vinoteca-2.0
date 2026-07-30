@@ -23,11 +23,16 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Admin — sin diseño público */}
-      <Route
-        path="/admin/*"
-        element={user?.isAdmin ? <AdminPanel /> : <Navigate to="/" replace />}
-      />
+      {/* Panel de gestión — sin diseño público. Accesible para admins y empleados;
+       AdminPanel muestra distintas secciones según el rol. */}
+    <Route
+      path="/admin/*"
+      element={
+        user?.role === 'admin' || user?.role === 'empleado'
+         ? <AdminPanel />
+         : <Navigate to="/" replace />
+  }
+/>
 
       {/* Páginas públicas */}
       <Route path="/"          element={<HomePage />} />

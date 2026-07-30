@@ -46,7 +46,7 @@ export const crearVenta = async (req, res) => {
 // Solo los admins ven el historial completo.
 export const obtenerVentas = async (req, res) => {
     try {
-        const filtro = req.user.isAdmin ? {} : { user: req.user._id };
+        const filtro = req.user.role === 'admin' ? {} : { user: req.user._id };
 
         const ventas = await Order.find(filtro)
             .populate('user', 'username email')

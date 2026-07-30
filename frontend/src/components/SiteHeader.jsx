@@ -68,12 +68,12 @@ export default function SiteHeader() {
           {/* Usuario */}
           {user ? (
             <div className="flex items-center gap-3">
-              {user.isAdmin && (
+              {(user.role === 'admin' || user.role === 'empleado') && (
                 <Link
                   to="/admin"
                   className="text-xs font-medium uppercase tracking-wide text-vine transition-colors hover:text-wine"
                 >
-                  Admin
+                  Panel
                 </Link>
               )}
               <Link
@@ -169,13 +169,13 @@ export default function SiteHeader() {
                 >
                   Mi cuenta
                 </Link>
-                {user.isAdmin && (
+                {(user.role === 'admin' || user.role === 'empleado') && (
                   <Link
                     to="/admin"
                     onClick={() => setOpen(false)}
                     className="py-2 text-sm font-medium text-vine hover:text-wine"
                   >
-                    Panel Admin
+                    Panel de gestión
                   </Link>
                 )}
                 <button
