@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   TextInput,
@@ -13,7 +12,11 @@ import {
   StatusBar,
   ScrollView,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { getVinos, login, crearVenta, obtenerMisCompras, API_BASE } from './api';
+
+const LOGO_G1 = require('./assets/logo-g1.png');
+const IMG_PLACEHOLDER = 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500';
 
 // ─── Paleta (misma que la web) ───────────────────────────────────────────────
 const C = {
@@ -44,9 +47,12 @@ function Header({ view, setView, user, onLogout, cartCount }) {
   return (
     <View style={s.header}>
       <View style={s.headerTop}>
-        <View>
-          <Text style={s.headerBrand}>Bodega G1</Text>
-          <Text style={s.headerSub}>SAN JUAN · ARGENTINA</Text>
+        <View style={s.headerBrandRow}>
+          <Image source={LOGO_G1} style={s.headerLogo} resizeMode="cover" />
+          <View>
+            <Text style={s.headerBrand}>Bodega G1</Text>
+            <Text style={s.headerSub}>SAN JUAN · ARGENTINA</Text>
+          </View>
         </View>
         {user ? (
           <TouchableOpacity onPress={onLogout}>
@@ -82,9 +88,10 @@ function Header({ view, setView, user, onLogout, cartCount }) {
 
 // ─── Card de vino ────────────────────────────────────────────────────────────
 function VinoCard({ item, onAgregar }) {
-  const imageUri = item.image
+  const [imgError, setImgError] = useState(false);
+  const imageUri = (item.image && !imgError)
     ? `${API_BASE}${item.image}`
-    : 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500';
+    : IMG_PLACEHOLDER;
 
   const sinStock  = item.stock <= 0;
   const bajoStock = item.stock > 0 && item.stock <= 3;
@@ -93,7 +100,12 @@ function VinoCard({ item, onAgregar }) {
     <View style={s.card}>
       {/* Imagen */}
       <View style={s.cardImageWrap}>
-        <Image source={{ uri: imageUri }} style={s.cardImage} resizeMode="cover" />
+        <Image
+          source={{ uri: imageUri }}
+          style={s.cardImage}
+          resizeMode="contain"
+          onError={() => setImgError(true)}
+        />
         <View style={s.badge}>
           <Text style={s.badgeText}>{item.tipo?.toUpperCase()}</Text>
         </View>
@@ -384,6 +396,7 @@ export default function App() {
   // ── Render login ───────────────────────────────────────────────────────────
   const renderLogin = () => (
     <ScrollView contentContainerStyle={[s.list, s.loginWrap]}>
+      <Image source={LOGO_G1} style={s.loginLogo} resizeMode="cover" />
       <Text style={s.loginEyebrow}>BIENVENIDO</Text>
       <Text style={s.loginTitle}>Iniciar sesión</Text>
       <Text style={s.loginSub}>Ingresá para ver tu historial y comprar</Text>
@@ -426,32 +439,36 @@ export default function App() {
   );
 
   return (
-    <SafeAreaView style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor={C.wine} />
-      <Header
-        view={view}
-        setView={setView}
-        user={user}
-        onLogout={handleLogout}
-        cartCount={cartCount}
-      />
-      <View style={{ flex: 1, backgroundColor: C.cream }}>
-        {view === 'catalog' && renderCatalogo()}
-        {view === 'cart'    && renderCarrito()}
-        {view === 'compras' && renderCompras()}
-        {view === 'login'   && renderLogin()}
-      </View>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
+        <StatusBar barStyle="light-content" backgroundColor={C.wine} />
+        <Header
+          view={view}
+          setView={setView}
+          user={user}
+          onLogout={handleLogout}
+          cartCount={cartCount}
+        />
+        <View style={{ flex: 1, backgroundColor: C.cream }}>
+          {view === 'catalog' && renderCatalogo()}
+          {view === 'cart'    && renderCarrito()}
+          {view === 'compras' && renderCompras()}
+          {view === 'login'   && renderLogin()}
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
 // ─── Estilos ─────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
- container: { flex: 1, backgroundColor: C.wine, paddingTop: StatusBar.currentHeight || 0 },
+ container: { flex: 1, backgroundColor: C.wine },
 
   // Header
  header: { backgroundColor: C.wine, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 0 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  headerBrandRow: { flexDirection: 'row', alignItems: 'center' },
+  headerLogo: { width: 40, height: 40, borderRadius: 20, marginRight: 10, backgroundColor: C.cream },
   headerBrand: { color: C.cream, fontSize: 22, fontWeight: '700', letterSpacing: 0.5 },
   headerSub: { color: 'rgba(245,240,232,0.6)', fontSize: 9, letterSpacing: 3, marginTop: 1 },
   headerLogin: { color: C.cream, fontSize: 13, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase' },
@@ -474,8 +491,8 @@ const s = StyleSheet.create({
 
   // Card vino
   card: { backgroundColor: C.white, borderWidth: 1, borderColor: C.inkFaint, marginBottom: 16, overflow: 'hidden' },
-  cardImageWrap: { position: 'relative' },
-  cardImage: { width: '100%', height: 200, backgroundColor: C.creamDark },
+  cardImageWrap: { position: 'relative', backgroundColor: C.creamDark },
+  cardImage: { width: '100%', height: 240 },
   badge: { position: 'absolute', top: 10, left: 10, backgroundColor: 'rgba(245,240,232,0.92)', paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 9, fontWeight: '700', letterSpacing: 2, color: C.ink },
   cardBody: { padding: 14 },
@@ -515,6 +532,7 @@ const s = StyleSheet.create({
 
   // Login
   loginWrap: { flexGrow: 1, justifyContent: 'center' },
+  loginLogo: { width: 88, height: 88, borderRadius: 44, alignSelf: 'center', marginBottom: 18, backgroundColor: C.white },
   loginEyebrow: { fontSize: 10, fontWeight: '600', letterSpacing: 3, color: C.vine, textAlign: 'center', marginBottom: 6 },
   loginTitle: { fontSize: 28, fontWeight: '700', color: C.ink, textAlign: 'center' },
   loginSub: { fontSize: 13, color: C.inkLight, textAlign: 'center', marginTop: 6, marginBottom: 24 },

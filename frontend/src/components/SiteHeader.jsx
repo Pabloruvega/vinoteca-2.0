@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { useCart } from '../context/CartContext'
+import logoG1 from '../assets/G1.png'
 
 const links = [
   { href: '/',         label: 'Inicio' },
@@ -23,12 +24,19 @@ export default function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
 
         {/* Logo */}
-        <Link to="/" className="flex flex-col leading-none" onClick={() => setOpen(false)}>
-          <span className="font-serif text-2xl font-semibold tracking-tight text-wine">
-            Bodega G1
-          </span>
-          <span className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-ink/50">
-            San Juan · Argentina
+        <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
+          <img
+            src={logoG1}
+            alt="Logo Bodega G1"
+            className="h-11 w-11 shrink-0 rounded-full object-cover"
+          />
+          <span className="flex flex-col leading-none">
+            <span className="font-serif text-2xl font-semibold tracking-tight text-wine">
+              Bodega G1
+            </span>
+            <span className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-ink/50">
+              San Juan · Argentina
+            </span>
           </span>
         </Link>
 
