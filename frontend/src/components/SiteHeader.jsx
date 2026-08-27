@@ -73,7 +73,7 @@ export default function SiteHeader() {
                   to="/admin"
                   className="text-xs font-medium uppercase tracking-wide text-vine transition-colors hover:text-wine"
                 >
-                  Panel
+                  Admin
                 </Link>
               )}
               <Link

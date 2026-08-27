@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthProvider'
+import ScrollToTop from './components/ScrollToTop'
 
 import HomePage     from './pages/HomePage'
 import Shop         from './pages/Shop'
@@ -22,6 +23,8 @@ export default function App() {
   const { user } = useAuth()
 
   return (
+    <>
+    <ScrollToTop />
     <Routes>
       {/* Panel de gestión — sin diseño público. Accesible para admins y empleados;
        AdminPanel muestra distintas secciones según el rol. */}
@@ -69,5 +72,6 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   )
 }

@@ -121,3 +121,8 @@ usar, generá una "Contraseña de aplicación" en https://myaccount.google.com/a
 | `npm run dev:backend` | Levanta la API con recarga automática (nodemon) |
 | `npm run dev:frontend` | Levanta la web con Vite |
 | `npm run dev:mobile` | Levanta Expo |
+
+## Documentación técnica
+
+Cómo está armado el sistema por dentro (funciones de cada módulo, cómo funciona el JWT y
+la conexión de la API): ver [`ARQUITECTURA.md`](./ARQUITECTURA.md).
