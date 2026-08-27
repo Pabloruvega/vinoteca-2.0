@@ -45,4 +45,24 @@ app.use('/api/users', userRoutes);
 app.use('/api/ventas', orderRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Servidor en http://localhost:${PORT}`));
+let server;
+
+function startServer() {
+    server = app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Servidor en http://0.0.0.0:${PORT} (accesible en red local)`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.warn(`⚠️ El puerto ${PORT} está ocupado temporalmente. Reintentando en 1.5s...`);
+            setTimeout(() => {
+                try { server.close(); } catch {}
+                startServer();
+            }, 1500);
+        } else {
+            console.error('Error en el servidor:', err);
+        }
+    });
+}
+
+startServer();

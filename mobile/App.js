@@ -13,7 +13,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { getVinos, login, crearVenta, obtenerMisCompras, API_BASE } from './api';
+import { getVinos, login, registrar, crearVenta, obtenerMisCompras, API_BASE } from './api';
 
 const LOGO_G1 = require('./assets/logo-g1.png');
 const IMG_PLACEHOLDER = 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500';
@@ -145,6 +145,8 @@ export default function App() {
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
+  const [nombre, setNombre]     = useState('');
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [loggingIn, setLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState('');
 
@@ -188,8 +190,29 @@ export default function App() {
       setView('catalog');
       setEmail('');
       setPassword('');
+      setNombre('');
     } catch (error) {
       setLoginError(error.message || 'Email o contraseña incorrectos.');
+    } finally {
+      setLoggingIn(false);
+    }
+  };
+
+  const handleRegistrar = async () => {
+    if (!nombre || !email || !password) { setLoginError('Completá todos los campos.'); return; }
+    if (password.length < 6) { setLoginError('La contraseña debe tener al menos 6 caracteres.'); return; }
+    setLoggingIn(true);
+    setLoginError('');
+    try {
+      const userData = await registrar(nombre, email, password);
+      setUser(userData);
+      setView('catalog');
+      setNombre('');
+      setEmail('');
+      setPassword('');
+      Alert.alert('¡Bienvenido! 🍷', `Tu cuenta de cliente se creó exitosamente.`);
+    } catch (error) {
+      setLoginError(error.message || 'Error al crear la cuenta.');
     } finally {
       setLoggingIn(false);
     }
@@ -393,15 +416,53 @@ export default function App() {
     );
   };
 
-  // ── Render login ───────────────────────────────────────────────────────────
+  // ── Render login / registro ────────────────────────────────────────────────
   const renderLogin = () => (
     <ScrollView contentContainerStyle={[s.list, s.loginWrap]}>
       <Image source={LOGO_G1} style={s.loginLogo} resizeMode="cover" />
-      <Text style={s.loginEyebrow}>BIENVENIDO</Text>
-      <Text style={s.loginTitle}>Iniciar sesión</Text>
-      <Text style={s.loginSub}>Ingresá para ver tu historial y comprar</Text>
+      <Text style={s.loginEyebrow}>{isRegisterMode ? 'NUEVO CLIENTE' : 'BIENVENIDO'}</Text>
+      <Text style={s.loginTitle}>{isRegisterMode ? 'Crear cuenta' : 'Iniciar sesión'}</Text>
+      <Text style={s.loginSub}>
+        {isRegisterMode
+          ? 'Registrate para comprar y ver tus pedidos'
+          : 'Ingresá para ver tu historial y comprar'}
+      </Text>
+
+      {/* Selector de pestañas */}
+      <View style={s.authToggle}>
+        <TouchableOpacity
+          style={[s.authTab, !isRegisterMode && s.authTabActive]}
+          onPress={() => { setIsRegisterMode(false); setLoginError(''); }}
+        >
+          <Text style={[s.authTabText, !isRegisterMode && s.authTabTextActive]}>
+            Iniciar sesión
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[s.authTab, isRegisterMode && s.authTabActive]}
+          onPress={() => { setIsRegisterMode(true); setLoginError(''); }}
+        >
+          <Text style={[s.authTabText, isRegisterMode && s.authTabTextActive]}>
+            Crear cuenta
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={s.loginForm}>
+        {isRegisterMode && (
+          <>
+            <Text style={s.inputLabel}>Nombre completo</Text>
+            <TextInput
+              style={s.input}
+              placeholder="Juan Pérez"
+              placeholderTextColor={C.inkLight}
+              value={nombre}
+              onChangeText={setNombre}
+              autoCapitalize="words"
+            />
+          </>
+        )}
+
         <Text style={s.inputLabel}>Email</Text>
         <TextInput
           style={s.input}
@@ -412,6 +473,7 @@ export default function App() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
+
         <Text style={s.inputLabel}>Contraseña</Text>
         <TextInput
           style={s.input}
@@ -428,11 +490,32 @@ export default function App() {
           </View>
         )}
 
-        <TouchableOpacity style={s.btnPrimary} onPress={handleLogin} disabled={loggingIn}>
-          {loggingIn
-            ? <ActivityIndicator color={C.cream} />
-            : <Text style={s.btnPrimaryText}>Ingresar →</Text>
-          }
+        <TouchableOpacity
+          style={s.btnPrimary}
+          onPress={isRegisterMode ? handleRegistrar : handleLogin}
+          disabled={loggingIn}
+        >
+          {loggingIn ? (
+            <ActivityIndicator color={C.cream} />
+          ) : (
+            <Text style={s.btnPrimaryText}>
+              {isRegisterMode ? 'Crear cuenta →' : 'Ingresar →'}
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={s.toggleLink}
+          onPress={() => {
+            setIsRegisterMode(!isRegisterMode);
+            setLoginError('');
+          }}
+        >
+          <Text style={s.toggleLinkText}>
+            {isRegisterMode
+              ? '¿Ya tenés cuenta? Iniciar sesión'
+              : '¿No tenés cuenta? Registrate gratis'}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -530,17 +613,24 @@ const s = StyleSheet.create({
   orderItemNombre: { fontSize: 14, fontWeight: '600', color: C.ink },
   orderItemDetalle: { fontSize: 12, color: C.inkLight, marginTop: 2 },
 
-  // Login
+  // Login / Registro
   loginWrap: { flexGrow: 1, justifyContent: 'center' },
   loginLogo: { width: 88, height: 88, borderRadius: 44, alignSelf: 'center', marginBottom: 18, backgroundColor: C.white },
   loginEyebrow: { fontSize: 10, fontWeight: '600', letterSpacing: 3, color: C.vine, textAlign: 'center', marginBottom: 6 },
   loginTitle: { fontSize: 28, fontWeight: '700', color: C.ink, textAlign: 'center' },
-  loginSub: { fontSize: 13, color: C.inkLight, textAlign: 'center', marginTop: 6, marginBottom: 24 },
+  loginSub: { fontSize: 13, color: C.inkLight, textAlign: 'center', marginTop: 6, marginBottom: 20 },
+  authToggle: { flexDirection: 'row', marginBottom: 20, borderWidth: 1, borderColor: C.inkFaint },
+  authTab: { flex: 1, paddingVertical: 11, alignItems: 'center', backgroundColor: C.cream },
+  authTabActive: { backgroundColor: C.wine },
+  authTabText: { fontSize: 11, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase', color: C.inkLight },
+  authTabTextActive: { color: C.cream },
   loginForm: { backgroundColor: C.white, borderWidth: 1, borderColor: C.inkFaint, padding: 20 },
   inputLabel: { fontSize: 12, fontWeight: '600', color: C.ink, marginBottom: 6 },
   input: { borderWidth: 1, borderColor: C.inkFaint, backgroundColor: C.cream, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: C.ink, marginBottom: 16 },
   errorBox: { borderWidth: 1, borderColor: '#fca5a5', backgroundColor: '#fef2f2', padding: 12, marginBottom: 14 },
   errorText: { fontSize: 13, color: C.red },
+  toggleLink: { marginTop: 16, alignItems: 'center' },
+  toggleLinkText: { fontSize: 12, fontWeight: '600', color: C.wine, textTransform: 'uppercase', letterSpacing: 0.5 },
 
   // Botón primario
   btnPrimary: { backgroundColor: C.wine, paddingVertical: 14, alignItems: 'center' },
