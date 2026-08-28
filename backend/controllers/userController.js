@@ -27,9 +27,7 @@ export const registrarUsuario = async (req, res) => {
         const existe = await User.findOne({ email });
         if (existe) return res.status(400).json({ mensaje: 'El email ya existe' });
 
-        // Fix #3 + roles: el registro público SIEMPRE crea un cliente, sin importar
-        // qué venga en el body. Los roles empleado/admin solo los asigna un admin
-        // ya autenticado desde el panel (ver crearUsuarioAdmin más abajo).
+        
         const nuevoUsuario = new User({
             username: nombre,
             email,

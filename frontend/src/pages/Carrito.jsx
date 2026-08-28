@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../auth/AuthProvider'
@@ -19,6 +20,7 @@ export default function Carrito() {
   const { cart, removeFromCart, updateQuantity, clearCart, getCartTotal } = useCart()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [compraExitosa, setCompraExitosa] = useState(false)
 
   const handleCheckout = async () => {
     if (!user) {
@@ -37,7 +39,7 @@ export default function Carrito() {
       }
       await api.post('/ventas', payload)
       clearCart()
-      navigate('/mis-compras')
+      setCompraExitosa(true)
     } catch (err) {
       console.error(err)
       alert(err.response?.data?.mensaje || 'Error al procesar la compra.')
@@ -185,6 +187,37 @@ export default function Carrito() {
 
       </main>
       <SiteFooter />
+
+      {/* Modal de compra exitosa */}
+      {compraExitosa && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-6">
+          <div className="w-full max-w-md bg-white p-10 text-center shadow-xl">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-vine/10">
+              <svg className="size-8 text-vine" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            </div>
+            <h2 className="mt-6 font-serif text-3xl font-semibold text-ink">
+              ¡Gracias por tu compra!
+            </h2>
+            <p className="mt-3 text-ink/60">
+              Tu pedido fue procesado con éxito. En breve vas a poder ver el detalle en tus compras.
+            </p>
+            <button
+              onClick={() => { setCompraExitosa(false); navigate('/mis-compras') }}
+              className="btn-primary mt-8 w-full justify-center"
+            >
+              Ver mis compras →
+            </button>
+            <button
+              onClick={() => { setCompraExitosa(false); navigate('/vinos') }}
+              className="mt-4 block w-full text-center text-xs font-medium uppercase tracking-wide text-ink/50 transition-colors hover:text-wine"
+            >
+              Seguir comprando
+            </button>
+          </div>
+        </div>
+      )}
     </>
   )
 }

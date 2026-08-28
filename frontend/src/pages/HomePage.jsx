@@ -6,7 +6,7 @@ import WineCard from '../components/WineCard'
 import api from '../api'
 
 // Imágenes de respaldo de Unsplash (en producción, reemplazá con las imágenes reales)
-const IMG_HERO    = 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=1600&q=80'
+const IMG_HERO    = 'http://localhost:5000/uploads/Home.jpg'
 const IMG_BODEGA  = 'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=900&q=80'
 
 export default function HomePage() {
